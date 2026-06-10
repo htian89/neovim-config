@@ -4,6 +4,14 @@ function M.proto_globs()
   return { "*.proto", "!dmp/**" }
 end
 
+function M.resolve_pattern(pattern)
+  if pattern and pattern ~= "" then
+    return pattern
+  end
+
+  return vim.fn.expand("<cword>")
+end
+
 function M.grep_to_quickfix(pattern, opts)
   opts = opts or {}
   if vim.fn.executable("rg") == 0 then
@@ -11,7 +19,7 @@ function M.grep_to_quickfix(pattern, opts)
     return
   end
 
-  pattern = pattern ~= "" and pattern or vim.fn.expand("<cword>")
+  pattern = M.resolve_pattern(pattern)
   if pattern == "" then
     vim.notify("grep: empty pattern", vim.log.levels.WARN)
     return
@@ -22,13 +30,20 @@ function M.grep_to_quickfix(pattern, opts)
   local cmd = {
     "rg",
     "--vimgrep",
-    "--fixed-strings",
     "--color=never",
     "--glob",
     "!tags",
     "--glob",
     "!*/tags",
   }
+
+  if not opts.regex then
+    table.insert(cmd, "--fixed-strings")
+  end
+
+  if opts.word then
+    table.insert(cmd, "--word-regexp")
+  end
 
   for _, glob in ipairs(globs) do
     vim.list_extend(cmd, { "--glob", glob })
@@ -38,7 +53,15 @@ function M.grep_to_quickfix(pattern, opts)
   vim.list_extend(cmd, scopes)
 
   local lines = vim.fn.systemlist(cmd)
-  local title = string.format("%s %s in %s", opts.title or "grep", pattern, table.concat(scopes, ", "))
+  local flags = {}
+  if opts.regex then
+    table.insert(flags, "regex")
+  end
+  if opts.word then
+    table.insert(flags, "word")
+  end
+  local flag_text = #flags > 0 and " [" .. table.concat(flags, ", ") .. "]" or ""
+  local title = string.format("%s%s %s in %s", opts.title or "grep", flag_text, pattern, table.concat(scopes, ", "))
   vim.fn.setqflist({}, "r", {
     title = title,
     lines = lines,
