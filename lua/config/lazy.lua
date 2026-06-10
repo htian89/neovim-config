@@ -15,6 +15,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
+  git = { timeout = 300 },
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
@@ -35,6 +36,9 @@ require("lazy").setup({
     enabled = true, -- check for plugin updates periodically
     notify = false, -- notify on update
   }, -- automatically check for plugin updates
+  rocks = {
+    enabled = false,
+  },
   performance = {
     rtp = {
       -- disable some rtp plugins
