@@ -14,15 +14,15 @@ LazyVim-based Neovim config with local C++/rbuild customizations.
 | `:Grept <keyword>` | Search `huichuan/trigger_server_v2`, excluding `tags` files. | `:Grept TriggerInfo` |
 | `:Grepm <keyword>` | Search `huichuan/media_server`, excluding `tags` files. | `:Grepm MediaInfo` |
 | `:Grepe <keyword>` | Search `huichuan/exchange_server`, excluding `tags` files. | `:Grepe ModuleRpc` |
-| `:Grepp <keyword>` | Search all `.proto` files, excluding `tags` files. | `:Grepp CreativeInfo` |
+| `:Grepp <keyword>` | Search all `.proto` files, excluding `tags` files and `dmp/**`. | `:Grepp CreativeInfo` |
 | `:Grep1 <keyword>` | Search the current file's level-1 directory, excluding `tags` files. | `:Grep1 AdInfo` |
 | `:Grep2 <keyword>` | Search the current file's level-2 directory, excluding `tags` files. | `:Grep2 AdInfo` |
 | `:Grep3 <keyword>` | Search the current file's level-3 directory, excluding `tags` files. | `:Grep3 AdInfo` |
 | `:Grep4 <keyword>` | Search the current file's level-4 directory, excluding `tags` files. | `:Grep4 AdInfo` |
-| `:Grepp1 <keyword>` | Search `.proto` files in the current file's level-1 directory, excluding `tags` files. | `:Grepp1 AdInfo` |
-| `:Grepp2 <keyword>` | Search `.proto` files in the current file's level-2 directory, excluding `tags` files. | `:Grepp2 AdInfo` |
-| `:Grepp3 <keyword>` | Search `.proto` files in the current file's level-3 directory, excluding `tags` files. | `:Grepp3 AdInfo` |
-| `:Grepp4 <keyword>` | Search `.proto` files in the current file's level-4 directory, excluding `tags` files. | `:Grepp4 AdInfo` |
+| `:Grepp1 <keyword>` | Search `.proto` files in the current file's level-1 directory, excluding `tags` files and `dmp/**`. | `:Grepp1 AdInfo` |
+| `:Grepp2 <keyword>` | Search `.proto` files in the current file's level-2 directory, excluding `tags` files and `dmp/**`. | `:Grepp2 AdInfo` |
+| `:Grepp3 <keyword>` | Search `.proto` files in the current file's level-3 directory, excluding `tags` files and `dmp/**`. | `:Grepp3 AdInfo` |
+| `:Grepp4 <keyword>` | Search `.proto` files in the current file's level-4 directory, excluding `tags` files and `dmp/**`. | `:Grepp4 AdInfo` |
 | `:Gd` | Proto-aware definition jump. From C++, `*.pb.h` include lines open the matching `.proto`; proto-generated symbols search `message/enum/service` definitions in `.proto` files before falling back to LSP. | `:Gd` |
 
 When the current buffer is `/Users/yimu/Work/wlyb/common/rta/rta_client/rta_client.cc`, `:Rbuild` runs:

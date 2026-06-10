@@ -57,7 +57,7 @@ create_grep_command("Grepe", {
 create_grep_command("Grepp", {
   title = "Grepp",
   scopes = { "." },
-  globs = { "*.proto" },
+  globs = search.proto_globs(),
   desc = "Search all proto files with ripgrep",
 })
 
@@ -79,7 +79,7 @@ for level = 1, 4 do
     scope_fn = function()
       return search.current_level_scope(scope_level)
     end,
-    globs = { "*.proto" },
+    globs = search.proto_globs(),
     desc = "Search current file level " .. scope_level .. " directory proto files with ripgrep",
   })
 end

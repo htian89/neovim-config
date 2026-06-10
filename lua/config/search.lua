@@ -1,5 +1,9 @@
 local M = {}
 
+function M.proto_globs()
+  return { "*.proto", "!dmp/**" }
+end
+
 function M.grep_to_quickfix(pattern, opts)
   opts = opts or {}
   if vim.fn.executable("rg") == 0 then
@@ -126,7 +130,7 @@ local function jump_proto_symbol()
     "--glob",
     "!*/tags",
     "--glob",
-    "!dmp/streaming/**",
+    "!dmp/**",
     pattern,
     ".",
   })
