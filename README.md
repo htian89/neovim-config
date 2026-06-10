@@ -1,6 +1,6 @@
 # Neovim Config
 
-LazyVim-based Neovim config with local C++/Codex/rbuild customizations.
+LazyVim-based Neovim config with local C++/rbuild customizations.
 
 ## Custom Commands
 
@@ -50,10 +50,6 @@ Useful quickfix commands:
 | `\g` | Normal | Search the symbol under cursor with the same ripgrep quickfix helper as `:Grep`, excluding `tags` files, scoped to the first two path components of the current file. |
 | `<F5>` | Normal | Jump to next quickfix entry (`:cnext`). |
 | `<F6>` | Normal | Jump to previous quickfix entry (`:cprev`). |
-| `<leader>cc` | Normal | Toggle Codex panel. |
-| `<leader>cf` | Normal | Focus Codex panel. |
-| `<leader>cs` | Visual | Send selected text to Codex. |
-| `<leader>cs` | File tree | Add selected file to Codex context, for supported tree/file explorer buffers. |
 
 ## UI
 
@@ -73,20 +69,3 @@ Useful LazyVim defaults:
 | `K` | Show hover information. |
 
 For best C++ navigation, keep `compile_commands.json` available in the project root or a parent directory that `clangd` can discover.
-
-## Codex Plugin
-
-`codex.nvim` is installed by Lazy.nvim from GitHub:
-
-```lua
-"ishiooon/codex.nvim"
-```
-
-The config expects the Codex CLI to be available on `PATH` as `codex`. Check a new machine with:
-
-```bash
-which codex
-codex --version
-```
-
-Lazy git timeout is set to 300 seconds in `lua/config/lazy.lua` to tolerate slower plugin checkout.
