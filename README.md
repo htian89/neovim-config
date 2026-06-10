@@ -76,10 +76,17 @@ For best C++ navigation, keep `compile_commands.json` available in the project r
 
 ## Codex Plugin
 
-`codex.nvim` is loaded from a manual local checkout:
+`codex.nvim` is installed by Lazy.nvim from GitHub:
 
-```text
-/Users/yimu/.local/share/nvim/manual/codex.nvim
+```lua
+"ishiooon/codex.nvim"
 ```
 
-The checkout uses sparse checkout to skip the large demo gif files that caused Lazy.nvim clone checkout timeouts.
+The config expects the Codex CLI to be available on `PATH` as `codex`. Check a new machine with:
+
+```bash
+which codex
+codex --version
+```
+
+Lazy git timeout is set to 300 seconds in `lua/config/lazy.lua` to tolerate slower plugin checkout.

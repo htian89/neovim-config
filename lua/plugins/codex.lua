@@ -1,7 +1,6 @@
 return {
   {
-    dir = "/Users/yimu/.local/share/nvim/manual/codex.nvim",
-    name = "codex.nvim",
+    "ishiooon/codex.nvim",
     dependencies = { "folke/snacks.nvim" },
     cmd = {
       "Codex",
@@ -21,7 +20,7 @@ return {
       },
     },
     opts = {
-      terminal_cmd = "/Applications/Codex.app/Contents/Resources/codex",
+      terminal_cmd = "codex",
       env = {
         ENABLE_IDE_INTEGRATION = "true",
         CODEX_CODE_SSE_PORT = "12345",
