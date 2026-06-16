@@ -81,6 +81,43 @@ Useful LazyVim defaults:
 
 For best C++ navigation, keep `compile_commands.json` available in the project root or a parent directory that `clangd` can discover.
 
+## Tools
+
+The `tools/` directory contains local helper scripts for C++ navigation in the wly-style repository layout. Run them from the repository root, for example `/Users/yimu/Work/wly` or `/Users/yimu/Work/wlyb`.
+
+### `tools/gen_compile_commands.py`
+
+Generates a `compile_commands.json` file for clangd by reading alimake-style `BUILD` files. It does not invoke alimake; it evaluates BUILD files with lightweight rule stubs, expands source globs, reads `.alimakerc` include/flag settings, and writes clangd-friendly compile commands.
+
+```bash
+~/.config/nvim/tools/gen_compile_commands.py
+~/.config/nvim/tools/gen_compile_commands.py huichuan/trigger_server_v2 common
+~/.config/nvim/tools/gen_compile_commands.py -o compile_commands.json --compiler g++
+~/.config/nvim/tools/gen_compile_commands.py --warnings
+```
+
+Arguments:
+
+| Option | Description |
+| --- | --- |
+| `<paths>` | Optional BUILD files or directories to index. If omitted, existing default roots such as `base`, `common`, `huichuan`, and `net` are scanned. |
+| `-o, --output` | Output compile database path. Defaults to `compile_commands.json`. |
+| `--compiler` | Compiler name written into each compile command. Defaults to `g++`. |
+| `--warnings` | Print BUILD evaluation warnings to stderr. |
+
+### `tools/gen_tags.sh`
+
+Generates a C/C++ `tags` file from selected source roots. Missing directories are skipped, so the same command can be used across machines with different checkout subsets.
+
+```bash
+~/.config/nvim/tools/gen_tags.sh
+~/.config/nvim/tools/gen_tags.sh huichuan common net
+```
+
+By default it scans roots such as `base`, `common`, `dmp`, `huichuan`, `model`, `net`, `serving_base`, `vertical`, `wolong`, `zilong`, and `ads_index`, while pruning `.git`, `.master`, `.dep_create`, `large_data`, and `third_party`.
+
+This script requires Universal ctags. The macOS system `ctags` does not support the GNU-style options used here.
+
 ## Markdown Support
 
 Markdown files use `render-markdown.nvim` for inline rendering. Treesitter parsers `markdown` and `markdown_inline` are installed automatically by the Neovim plugin config.
