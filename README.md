@@ -6,7 +6,7 @@ LazyVim-based Neovim config with local C++/rbuild customizations.
 
 | Command | Description | Example |
 | --- | --- | --- |
-| `:Rbuild` | Run local `/Users/yimu/.vim/mac-tools/rbuild -f <current-file-relative-path>` and send output to quickfix. | `:Rbuild` |
+| `:Rbuild` | Run local `/Users/yimu/.config/nvim/tools/rbuild -f <current-file-relative-path>` and send output to quickfix. | `:Rbuild` |
 | `:Rbuild <args>` | Append extra args after the current file path. | `:Rbuild --makefile --test` |
 | `:RbuildStop` | Stop the currently running `Rbuild` job. | `:RbuildStop` |
 | `:Grep [keyword]` | Search all directories with ripgrep, excluding `tags` files. Uses the word under cursor when `[keyword]` is omitted. | `:Grep AdInfo` |
@@ -38,7 +38,7 @@ LazyVim-based Neovim config with local C++/rbuild customizations.
 When the current buffer is `/Users/yimu/Work/wlyb/common/rta/rta_client/rta_client.cc`, `:Rbuild` runs:
 
 ```bash
-/Users/yimu/.vim/mac-tools/rbuild -f common/rta/rta_client/rta_client.cc
+/Users/yimu/.config/nvim/tools/rbuild -f common/rta/rta_client/rta_client.cc
 ```
 
 `Rbuild` opens the quickfix window automatically. Compiler errors that match `file:line:column` or `file:line` formats become jumpable quickfix entries.

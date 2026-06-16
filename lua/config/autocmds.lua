@@ -20,7 +20,7 @@ vim.api.nvim_create_user_command("Rbuild", function(opts)
   end
 
   local rel = vim.fn.fnamemodify(file, ":.")
-  local cmd = { "/Users/yimu/.vim/mac-tools/rbuild", "-f", rel }
+  local cmd = { "/Users/yimu/.config/nvim/tools/rbuild", "-f", rel }
   vim.list_extend(cmd, opts.fargs)
 
   local title = table.concat(cmd, " ")
