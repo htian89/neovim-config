@@ -55,6 +55,35 @@ local function parse_grep_args(args)
   return parsed
 end
 
+local function edit_location_from_text(text)
+  local file, line = text:match("%s+at%s+([^:%s]+):(%d+)")
+  if not file then
+    file, line = text:match("([^:%s]+):(%d+)")
+  end
+
+  if not file or not line then
+    vim.notify("E: no file:line location found", vim.log.levels.WARN)
+    return
+  end
+
+  local target = file
+  if vim.fn.filereadable(target) == 0 then
+    local found = vim.fn.findfile(file, ".;")
+    if found ~= "" then
+      target = found
+    end
+  end
+
+  if vim.fn.filereadable(target) == 0 then
+    vim.notify("E: file not found: " .. file, vim.log.levels.ERROR)
+    return
+  end
+
+  vim.cmd.edit(vim.fn.fnameescape(target))
+  vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+  vim.cmd("normal! zv")
+end
+
 local function create_grep_command(name, opts)
   vim.api.nvim_create_user_command(name, function(command_opts)
     local parsed = parse_grep_args(command_opts.args)
@@ -90,6 +119,14 @@ vim.api.nvim_create_user_command("SwitchHeader", switch_header_source, {
 vim.api.nvim_create_user_command("A", switch_header_source, {
   force = true,
   desc = "Switch between source file and same-name header",
+})
+
+vim.api.nvim_create_user_command("E", function(opts)
+  edit_location_from_text(opts.args)
+end, {
+  nargs = "+",
+  force = true,
+  desc = "Edit file from a gdb-style file:line location",
 })
 
 vim.keymap.set("n", "<leader>h", switch_header_source, { desc = "Switch source/header" })

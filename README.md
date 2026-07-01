@@ -24,6 +24,7 @@ LazyVim-based Neovim config with local C++/rbuild customizations.
 | `:Grepp3 [keyword]` | Search `.proto` files in the current file's level-3 directory, excluding `tags` files and `dmp/**`. Uses the word under cursor when `[keyword]` is omitted. | `:Grepp3 AdInfo` |
 | `:Grepp4 [keyword]` | Search `.proto` files in the current file's level-4 directory, excluding `tags` files and `dmp/**`. Uses the word under cursor when `[keyword]` is omitted. | `:Grepp4 AdInfo` |
 | `:Gd` | Proto-aware definition jump. From C++, `*.pb.h` include lines open the matching `.proto`; proto-generated symbols search `message/enum/service` definitions in `.proto` files before falling back to LSP. | `:Gd` |
+| `:E <text>` | Open a file location from gdb-style text containing `at path:line`, or direct `path:line`. | `:E #4 0x... at huichuan/trigger_server_v2/service_so/frame/global_env.cc:105` |
 | `:SwitchHeader` | Switch between the current C/C++ source file and the same-name header/source file in the same directory. | `:SwitchHeader` |
 | `:A` | Short alias for `:SwitchHeader`. | `:A` |
 
