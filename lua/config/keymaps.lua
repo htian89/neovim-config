@@ -129,6 +129,13 @@ end, {
   desc = "Edit file from a gdb-style file:line location",
 })
 
+vim.api.nvim_create_user_command("UH", function()
+  search.jump_gflag_definition()
+end, {
+  force = true,
+  desc = "Jump to the gflag definition under cursor",
+})
+
 vim.keymap.set("n", "<leader>h", switch_header_source, { desc = "Switch source/header" })
 
 create_grep_command("Grep", {

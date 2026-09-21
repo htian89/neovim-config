@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""rr - Remote run tool.
+
+Usage:
+  rr <command> [args...]
+
+Run a command on the remote machine from the matching remote directory.
+The current local directory must be under /Users/yimu; that prefix is mapped to
+/home/yimu.th on the remote host.
+"""
+
+import shlex
+import subprocess
+import sys
+from pathlib import Path
+
+
+REMOTE = "yimu.th@11.164.95.137"
+LOCAL_HOME = Path("/Users/yimu")
+REMOTE_HOME = "/home/yimu.th"
+
+
+def remote_cwd() -> str:
+    cwd = Path.cwd().resolve()
+    try:
+        relative = cwd.relative_to(LOCAL_HOME)
+    except ValueError:
+        print(f"rr: not under {LOCAL_HOME}: {cwd}", file=sys.stderr)
+        raise SystemExit(2)
+
+    if str(relative) == ".":
+        return REMOTE_HOME
+    return f"{REMOTE_HOME}/{relative}"
+
+
+def build_remote_command(args: list[str]) -> str:
+    if len(args) == 1:
+        command = args[0]
+    else:
+        command = shlex.join(args)
+    inner_command = f"cd {shlex.quote(remote_cwd())} && {command}"
+    return f"zsh -ic {shlex.quote(inner_command)}"
+
+
+def main() -> int:
+    args = sys.argv[1:]
+
+    if not args or args[0] in ("-h", "--help"):
+        print(__doc__.strip())
+        return 0 if args else 2
+
+    command = build_remote_command(args)
+    print(f"ssh {REMOTE} {shlex.quote(command)}")
+    return subprocess.call(["ssh", "-t", REMOTE, command])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

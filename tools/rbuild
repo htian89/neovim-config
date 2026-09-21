@@ -23,6 +23,47 @@ REMOTE_TMUX = "LD_LIBRARY_PATH=/data9/yimu.th/.local/usr/lib64 /data9/yimu.th/.l
 LOCAL_HOME = Path("/Users/yimu")
 REMOTE_HOME = "/home/yimu.th"
 SESSION = "rbuild"
+SYNC_DIRS = ["huichuan", "common"]
+
+
+def to_remote_path(local_path: Path) -> str:
+    path = local_path.resolve()
+    try:
+        relative = path.relative_to(LOCAL_HOME)
+    except ValueError:
+        return f"{REMOTE_HOME}/{path.name}"
+    if str(relative) == ".":
+        return REMOTE_HOME
+    return f"{REMOTE_HOME}/{relative.as_posix()}"
+
+
+def find_workspace_root() -> Path:
+    cwd = Path.cwd().resolve()
+    for parent in [cwd, *cwd.parents]:
+        if all((parent / d).is_dir() for d in SYNC_DIRS):
+            return parent
+    # Fallback: parent of cwd, but never above LOCAL_HOME
+    if cwd != LOCAL_HOME and LOCAL_HOME in cwd.parents:
+        return cwd.parent
+    return cwd
+
+
+def sync_workspace() -> int:
+    root = find_workspace_root()
+    remote_root = to_remote_path(root)
+    for name in SYNC_DIRS:
+        src = root / name
+        if not src.exists():
+            print(f"rbuild: sync source not found, skipping: {src}", file=sys.stderr)
+            continue
+        dst = f"{REMOTE}:{remote_root}/{name}/"
+        cmd = ["rsync", "-az", "--delete", "--exclude=.git", f"{src}/", dst]
+        print(" ".join(shlex.quote(c) for c in cmd))
+        rc = subprocess.call(cmd)
+        if rc != 0:
+            print(f"rbuild: sync failed for {name}", file=sys.stderr)
+            return rc
+    return 0
 
 
 def remote_cwd() -> str:
@@ -90,6 +131,9 @@ def _tmux_remain_on_exit() -> int:
 
 def cmd_ssh(build_args: list[str]) -> int:
     """Default: original SSH foreground build."""
+    rc = sync_workspace()
+    if rc != 0:
+        return rc
     cmd = build_cmd(build_args)
     print(f"ssh {REMOTE} {shlex.quote(cmd)}")
     return _ssh_remote(cmd, tty=True)
@@ -101,6 +145,9 @@ def cmd_tmux_attach(build_args: list[str]) -> int:
         print(f"rbuild: tmux session '{SESSION}' exists, attaching...")
         return _tmux_attach()
 
+    rc = sync_workspace()
+    if rc != 0:
+        return rc
     cmd = build_cmd(build_args)
     _tmux_new(cmd)
     _tmux_remain_on_exit()
@@ -116,6 +163,9 @@ def cmd_tmux_detach(build_args: list[str]) -> int:
         print(f"  kill:    rbuild -k")
         return 1
 
+    rc = sync_workspace()
+    if rc != 0:
+        return rc
     cmd = build_cmd(build_args)
     rc = _tmux_new(cmd)
     if rc != 0:
