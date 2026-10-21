@@ -14,6 +14,8 @@ Usage:
 import shlex
 import subprocess
 import sys
+
+import yaml
 from pathlib import Path
 
 
@@ -23,35 +25,56 @@ REMOTE_TMUX = "LD_LIBRARY_PATH=/data9/yimu.th/.local/usr/lib64 /data9/yimu.th/.l
 LOCAL_HOME = Path("/Users/yimu")
 REMOTE_HOME = "/home/yimu.th"
 SESSION = "rbuild"
-SYNC_DIRS = ["huichuan", "common"]
+CONFIG_PATH = Path.home() / ".config/arch-kit/config.yaml"
 
 
-def to_remote_path(local_path: Path) -> str:
-    path = local_path.resolve()
+def workspace_mapping() -> tuple[Path, str, list[str]]:
+    """Select the most specific configured workspace containing the cwd."""
     try:
-        relative = path.relative_to(LOCAL_HOME)
-    except ValueError:
-        return f"{REMOTE_HOME}/{path.name}"
-    if str(relative) == ".":
-        return REMOTE_HOME
-    return f"{REMOTE_HOME}/{relative.as_posix()}"
-
-
-def find_workspace_root() -> Path:
-    cwd = Path.cwd().resolve()
-    for parent in [cwd, *cwd.parents]:
-        if all((parent / d).is_dir() for d in SYNC_DIRS):
-            return parent
-    # Fallback: parent of cwd, but never above LOCAL_HOME
-    if cwd != LOCAL_HOME and LOCAL_HOME in cwd.parents:
-        return cwd.parent
-    return cwd
+        config = yaml.safe_load(CONFIG_PATH.read_text())
+        profiles = config["shared"]["workspace_profiles"]
+        cwd = Path.cwd().resolve()
+        matches = []
+        for profile in profiles.values():
+            for mapping in profile.get("mappings", {}).values():
+                root = Path(mapping["local"]).expanduser().resolve()
+                if cwd == root or root in cwd.parents:
+                    matches.append((root, mapping))
+        if not matches:
+            raise ValueError(f"no workspace mapping matches {cwd}")
+        depth = max(len(root.parts) for root, _ in matches)
+        matches = [(root, mapping) for root, mapping in matches if len(root.parts) == depth]
+        if len(matches) != 1:
+            raise ValueError(f"ambiguous workspace mappings for {cwd}")
+        root, mapping = matches[0]
+        remote = mapping["remote"]
+        if not isinstance(remote, str) or not remote.strip():
+            raise ValueError("mapping.remote must be a non-empty string")
+        if remote == "~" or remote.startswith("~/"):
+            remote = REMOTE_HOME + remote[1:]
+        if not remote.startswith("/"):
+            raise ValueError("mapping.remote must be absolute or start with ~/")
+        subdir = mapping.get("subdir", "")
+        if not isinstance(subdir, str):
+            raise ValueError("mapping.subdir must be a comma-separated string")
+        dirs = [name.strip() for name in subdir.split(",")] if subdir.strip() else ["."]
+        for name in dirs:
+            path = Path(name)
+            if not name or path.is_absolute() or ".." in path.parts or (name != "." and not path.parts):
+                raise ValueError(f"invalid mapping subdir: {name!r}")
+            if name == "." and subdir.strip():
+                raise ValueError("explicit '.' is not allowed in mapping.subdir")
+            if not (root / path).resolve().is_relative_to(root):
+                raise ValueError(f"mapping subdir escapes workspace: {name}")
+        return root, remote.rstrip("/"), dirs
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, yaml.YAMLError) as exc:
+        print(f"rbuild: invalid workspace config {CONFIG_PATH}: {exc}", file=sys.stderr)
+        raise SystemExit(2)
 
 
 def sync_workspace() -> int:
-    root = find_workspace_root()
-    remote_root = to_remote_path(root)
-    for name in SYNC_DIRS:
+    root, remote_root, sync_dirs = workspace_mapping()
+    for name in sync_dirs:
         src = root / name
         if not src.exists():
             print(f"rbuild: sync source not found, skipping: {src}", file=sys.stderr)
@@ -67,15 +90,9 @@ def sync_workspace() -> int:
 
 
 def remote_cwd() -> str:
-    cwd = Path.cwd().resolve()
-    try:
-        relative = cwd.relative_to(LOCAL_HOME)
-    except ValueError:
-        print(f"rbuild: not under {LOCAL_HOME}: {cwd}", file=sys.stderr)
-        raise SystemExit(2)
-    if str(relative) == ".":
-        return REMOTE_HOME
-    return f"{REMOTE_HOME}/{relative}"
+    root, remote_root, _ = workspace_mapping()
+    relative = Path.cwd().resolve().relative_to(root)
+    return remote_root if str(relative) == "." else f"{remote_root}/{relative.as_posix()}"
 
 
 def build_cmd(args: list[str]) -> str:
