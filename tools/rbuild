@@ -2,6 +2,9 @@
 """
 rbuild — Remote build tool.
 
+Reads shared.workspace_profiles.mappings from the ArchKit configuration.
+Mappings without remote use local compilation and must not be passed to rbuild.
+
 Usage:
   rbuild [args...]         Build via SSH (default, original behavior).
   rbuild -t [args...]      Build in tmux, attach to see output (survives disconnects).
@@ -33,13 +36,17 @@ def workspace_mapping() -> tuple[Path, str, list[str]]:
     try:
         config = yaml.safe_load(CONFIG_PATH.read_text())
         profiles = config["shared"]["workspace_profiles"]
+        if not isinstance(profiles, dict) or set(profiles) != {"mappings"}:
+            raise ValueError("use shared.workspace_profiles.mappings without a grouping layer")
+        mappings = profiles["mappings"]
+        if not isinstance(mappings, dict):
+            raise ValueError("workspace mappings must be an object")
         cwd = Path.cwd().resolve()
         matches = []
-        for profile in profiles.values():
-            for mapping in profile.get("mappings", {}).values():
-                root = Path(mapping["local"]).expanduser().resolve()
-                if cwd == root or root in cwd.parents:
-                    matches.append((root, mapping))
+        for mapping in mappings.values():
+            root = Path(mapping["local"]).expanduser().resolve()
+            if cwd == root or root in cwd.parents:
+                matches.append((root, mapping))
         if not matches:
             raise ValueError(f"no workspace mapping matches {cwd}")
         depth = max(len(root.parts) for root, _ in matches)
@@ -47,7 +54,9 @@ def workspace_mapping() -> tuple[Path, str, list[str]]:
         if len(matches) != 1:
             raise ValueError(f"ambiguous workspace mappings for {cwd}")
         root, mapping = matches[0]
-        remote = mapping["remote"]
+        remote = mapping.get("remote", "")
+        if remote == "":
+            raise ValueError("selected mapping uses local compilation (no remote); rbuild requires a remote mapping")
         if not isinstance(remote, str) or not remote.strip():
             raise ValueError("mapping.remote must be a non-empty string")
         if remote == "~" or remote.startswith("~/"):
